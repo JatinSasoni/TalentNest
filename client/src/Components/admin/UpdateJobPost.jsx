@@ -6,6 +6,7 @@ import { Navbar } from "../Shared/Navbar";
 import { useDispatch } from "react-redux";
 import { setLoading } from "../../../store/authSlice";
 import { toast } from "react-toastify";
+import { getApiErrorMessage } from "../../../util/getApiErrorMessage";
 import { handleEditJobAPI } from "../../../Api/postAPI";
 import { motion } from "motion/react";
 
@@ -24,7 +25,7 @@ export const UpdateJobPost = () => {
           setSingleJobInfo(response.data.job);
         }
       } catch (error) {
-        toast.error(error.response.data.MESSAGE);
+        toast.error(getApiErrorMessage(error, "Failed to load job"));
       } finally {
         setLocalLoading(false);
       }
@@ -43,7 +44,7 @@ export const UpdateJobPost = () => {
         navigate("/admin/jobs");
       }
     } catch (error) {
-      toast.error(error.response.data.MESSAGE);
+      toast.error(getApiErrorMessage(error, "Failed to update job"));
     } finally {
       dispatch(setLoading(false));
     }

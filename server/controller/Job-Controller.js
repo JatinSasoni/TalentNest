@@ -4,7 +4,8 @@ import User from "../models/user-model.js";
 import validateObjectID from "../utils/validateMongooseObjectID.js";
 import redis from "../utils/redis.js";
 import { clearCache } from "../utils/clearCache.js";
-import { emailQueue } from "../queues/emailQueue.js";
+import { enqueueEmailSafely } from "../utils/enqueueEmailSafely.js";
+import { parseRequirements } from "../utils/parseRequirements.js";
 
 //CREATE JOB API FOR AUTHENTICATED ADMIN
 export const postJobForAdmin = async (req, res) => {
@@ -33,18 +34,17 @@ export const postJobForAdmin = async (req, res) => {
       });
     }
 
-    //REQUIREMENTS LOGIC
-    const requirementArray = requirements.split(",").map((elem) => elem);
+    const requirementArray = parseRequirements(requirements);
 
     const postedJob = await Job.create({
       title,
       description,
       requirements: requirementArray,
-      salary,
+      salary: Number(salary),
       location,
       jobType,
-      position,
-      experienceLevel,
+      position: Number(position),
+      experienceLevel: Number(experienceLevel),
       CompanyID,
       createdBy: userID,
     });
@@ -78,7 +78,9 @@ export const postJobForAdmin = async (req, res) => {
     ${process.env.COMPANY_NAME} Team`,
     };
 
-    await emailQueue.add("jobPostingConfirmation", { mailOptions: mailOption });
+    await enqueueEmailSafely("jobPostingConfirmation", {
+      mailOptions: mailOption,
+    });
 
     await clearCache([
       "jobs:all:*",
@@ -92,6 +94,7 @@ export const postJobForAdmin = async (req, res) => {
       SUCCESS: true,
     });
   } catch (error) {
+    console.error("postJobForAdmin error:", error);
     res.status(500).json({ MESSAGE: "Server error", SUCCESS: false });
   }
 };

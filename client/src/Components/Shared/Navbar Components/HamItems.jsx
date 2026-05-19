@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { motion } from "motion/react";
 import { NavLink } from "react-router-dom";
+import { NewFeatureBadge } from "./NewFeatureBadge";
 
 const HamItems = ({ loggedInUser, setIsOpen }) => {
   return (
@@ -66,6 +67,16 @@ const HamItems = ({ loggedInUser, setIsOpen }) => {
           >
             Browse
           </NavLink>
+          {loggedInUser?.role === "student" && (
+            <NavLink
+              to="/resume-review"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center justify-center gap-2 py-2 hover:text-blue-500 dark:text-white"
+            >
+              AI Resume
+              <NewFeatureBadge />
+            </NavLink>
+          )}
         </>
       )}
     </motion.div>

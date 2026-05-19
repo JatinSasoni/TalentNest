@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 
 import { toast } from "react-toastify";
 import { handlePostJobAPI } from "../../../Api/postAPI";
+import { getApiErrorMessage } from "../../../util/getApiErrorMessage";
 import { PostJobForm } from "./admin components/PostJobForm";
 import { useDispatch } from "react-redux";
 import { setLoading } from "../../../store/authSlice";
@@ -19,7 +20,7 @@ export const RegisterNewJob = () => {
         navigate("/admin/jobs");
       }
     } catch (error) {
-      toast.error(error.response.data.MESSAGE);
+      toast.error(getApiErrorMessage(error, "Failed to post job"));
     } finally {
       dispatch(setLoading(false));
     }

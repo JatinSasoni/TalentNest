@@ -8,6 +8,7 @@ import companyRoute from "./routes/company-routes.js";
 import jobRoute from "./routes/job-routes.js";
 import contactRoute from "./routes/Contact-Us-route.js";
 import applicationRoute from "./routes/application-route.js";
+import aiRoute from "./routes/ai-routes.js";
 
 // Initializing app
 const app = express();
@@ -41,6 +42,7 @@ app.use("/api/v1/company", companyRoute);
 app.use("/api/v1/job", jobRoute);
 app.use("/api/v1/application", applicationRoute);
 app.use("/api/v1/contact", contactRoute);
+app.use("/api/v1/ai", aiRoute);
 
 // Connect to DB and start server
 connectDB().then(() => {

@@ -18,6 +18,18 @@ const applicationSchema = new Schema(
       enum: ["pending", "accepted", "rejected"],
       default: "pending",
     },
+    aiSummary: {
+      type: String,
+      default: "",
+    },
+    aiMatchScore: {
+      type: Number,
+      min: 0,
+      max: 100,
+    },
+    aiInsightsAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );

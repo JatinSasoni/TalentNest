@@ -55,6 +55,33 @@ export const handleUpdateComAPI = (data, companyID) => {
   });
 };
 
+export const generateJobDescriptionAPI = (data) => {
+  return api.post("/api/v1/ai/job-description/generate", data, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const generateApplicantSummaryAPI = (data) => {
+  return api.post("/api/v1/ai/applicant/summary", data, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const reviewStudentResumeAPI = (data = {}) => {
+  return api.post("/api/v1/ai/resume/review", data, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
 export const handlePostJobAPI = (data) => {
   return api.post("/api/v1/job/post", data, {
     withCredentials: true,

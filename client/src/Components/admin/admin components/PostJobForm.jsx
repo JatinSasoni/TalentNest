@@ -1,11 +1,12 @@
 import { shallowEqual, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { AiJobSuggestionPanel } from "./AiJobSuggestionPanel";
 
 /* eslint-disable react/prop-types */
-export const PostJobForm = ({ onSubmit, singleJobInfo = "" }) => {
+export const PostJobForm = ({ onSubmit, singleJobInfo = "", showAiPanel = true }) => {
   const { allCompanies } = useSelector((store) => store.company, shallowEqual);
   const { isDarkMode, loading } = useSelector(
     (store) => store.auth,
@@ -17,8 +18,33 @@ export const PostJobForm = ({ onSubmit, singleJobInfo = "" }) => {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     // formState: { errors },
   } = useForm();
+
+  const watchedFields = watch();
+
+  const selectedCompanyName = useMemo(() => {
+    const company = allCompanies?.find(
+      (c) => c._id === watchedFields.CompanyID
+    );
+    return company?.companyName || "";
+  }, [allCompanies, watchedFields.CompanyID]);
+
+  const aiFormValues = {
+    title: watchedFields.title || "",
+    location: watchedFields.location || "",
+    jobType: watchedFields.jobType || "",
+    experienceLevel: watchedFields.experienceLevel ?? "",
+    salary: watchedFields.salary ?? "",
+    companyName: selectedCompanyName,
+  };
+
+  const handleApplyAiSuggestion = ({ description, requirements }) => {
+    setValue("description", description, { shouldDirty: true });
+    setValue("requirements", requirements, { shouldDirty: true });
+  };
 
   // **Update the form values when `singleJobInfo` changes**
   useEffect(() => {
@@ -50,10 +76,26 @@ export const PostJobForm = ({ onSubmit, singleJobInfo = "" }) => {
       initial={{ opacity: 0, x: 100 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: "tween", duration: 1 }}
-      className="max-w-lg mx-auto dark:bg-zinc-900 rounded-lg max-md:mx-2"
+      className="max-w-7xl mx-auto dark:bg-zinc-900 rounded-lg max-md:mx-2"
       onSubmit={handleSubmit(onSubmit)}
       autoComplete="off"
     >
+      <motion.div
+        className={
+          showAiPanel
+            ? "grid lg:grid-cols-[minmax(380px,42%)_1fr] gap-8 items-start"
+            : ""
+        }
+      >
+        {showAiPanel && (
+          <AiJobSuggestionPanel
+            formValues={aiFormValues}
+            onApplySuggestion={handleApplyAiSuggestion}
+            disabled={loading}
+          />
+        )}
+
+        <motion.div>
       {/* Title Field */}
       <div className="mb-2">
         <label className="block text-gray-700 dark:text-gray-300 mb-1 ">
@@ -200,6 +242,8 @@ export const PostJobForm = ({ onSubmit, singleJobInfo = "" }) => {
           Go Back
         </button>
       </div>
+        </motion.div>
+      </motion.div>
     </motion.form>
   );
 };

@@ -22,10 +22,16 @@ export const validateJobCreation = [
 
   body("position").trim().notEmpty().withMessage("Position is required"),
 
-  body("experienceLevel")
-    .trim()
-    .notEmpty()
-    .withMessage("Experience level is required"),
+  body("experienceLevel").custom((value) => {
+    if (value === undefined || value === null || value === "") {
+      throw new Error("Experience level is required");
+    }
+    const num = Number(value);
+    if (Number.isNaN(num) || num < 0) {
+      throw new Error("Experience level must be a valid number");
+    }
+    return true;
+  }),
 
   body("CompanyID")
     .notEmpty()

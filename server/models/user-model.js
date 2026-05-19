@@ -41,6 +41,12 @@ const userSchema = new Schema(
         type: String,
         default: "/Logo/defaultpfp.jpg",
       },
+      aiResumeReview: { type: String, default: "" },
+      aiResumeScore: { type: Number, min: 0, max: 100 },
+      aiResumeStrengths: [{ type: String }],
+      aiResumeImprovements: [{ type: String }],
+      aiResumeReviewAt: { type: Date },
+      aiResumeReviewUrl: { type: String, default: "" },
     },
     savedJobs: [
       {

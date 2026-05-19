@@ -238,6 +238,10 @@ export const updateProfile = async (req, res) => {
       if (resumeUrl) {
         user.profile.resume = resumeUrl;
         user.profile.resumeOriginalName = file[0].originalname;
+        user.profile.aiResumeReview = "";
+        user.profile.aiResumeScore = undefined;
+        user.profile.aiResumeReviewAt = undefined;
+        user.profile.aiResumeReviewUrl = "";
       }
     }
 

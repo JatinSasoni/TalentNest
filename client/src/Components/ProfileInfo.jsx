@@ -4,7 +4,6 @@ import { MdOutlineMarkEmailRead, MdNumbers } from "react-icons/md";
 import { useSelector } from "react-redux";
 import { motion } from "motion/react";
 import { FaRegFilePdf } from "react-icons/fa";
-
 export const ProfileInfo = ({ setIsUpdateProfile }) => {
   const { loggedInUser } = useSelector((state) => state.auth);
 
@@ -113,6 +112,7 @@ export const ProfileInfo = ({ setIsUpdateProfile }) => {
             )}
           </div>
         )}
+
       </div>
     </motion.section>
   );

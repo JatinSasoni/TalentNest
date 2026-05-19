@@ -8,6 +8,7 @@ import { SavedJobs } from "../Components/SavedJobs";
 import { Profile } from "../Components/Profile";
 import { JobProfile } from "../Components/JobProfile";
 import { BrowsePage } from "../Components/BrowsePage";
+import { AiResumeReviewPage } from "../pages/AiResumeReviewPage";
 import { ResetPassPage } from "../pages/ResetPassPage";
 import { VerifyOTPPage } from "../pages/VerifyOTPPage";
 import { ProtectedChangePassword } from "../pages/protect/ProtectChangePassword";
@@ -58,6 +59,10 @@ const AppRouter = createBrowserRouter([
       {
         path: "/browse",
         element: <BrowsePage />,
+      },
+      {
+        path: "/resume-review",
+        element: <AiResumeReviewPage />,
       },
 
       {

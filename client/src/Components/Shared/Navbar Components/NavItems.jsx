@@ -43,15 +43,20 @@ export const NavItems = ({ loggedInUser }) => {
               <NavLink to="/browse">Browse</NavLink>
             </li>
             {loggedInUser?.role === "student" && (
-              <li className="!flex items-center">
-                <NavLink
-                  to="/resume-review"
-                  className="group inline-flex items-center gap-1.5"
-                >
-                  <span>AI Resume</span>
-                  <NewFeatureBadge className="translate-y-[-1px] opacity-90 transition group-hover:opacity-100" />
-                </NavLink>
-              </li>
+              <>
+                <li className="!flex items-center">
+                  <NavLink
+                    to="/resume-review"
+                    className="group inline-flex items-center gap-1.5"
+                  >
+                    <span>AI Resume</span>
+                    <NewFeatureBadge className="translate-y-[-1px] opacity-90 transition group-hover:opacity-100" />
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink to="/resume-builder">Resume Builder</NavLink>
+                </li>
+              </>
             )}
           </>
         )}

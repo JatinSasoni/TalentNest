@@ -68,14 +68,23 @@ const HamItems = ({ loggedInUser, setIsOpen }) => {
             Browse
           </NavLink>
           {loggedInUser?.role === "student" && (
-            <NavLink
-              to="/resume-review"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center justify-center gap-2 py-2 hover:text-blue-500 dark:text-white"
-            >
-              AI Resume
-              <NewFeatureBadge />
-            </NavLink>
+            <>
+              <NavLink
+                to="/resume-review"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center justify-center gap-2 py-2 hover:text-blue-500 dark:text-white"
+              >
+                AI Resume
+                <NewFeatureBadge />
+              </NavLink>
+              <NavLink
+                to="/resume-builder"
+                onClick={() => setIsOpen(false)}
+                className="block py-2 hover:text-blue-500 dark:text-white"
+              >
+                Resume Builder
+              </NavLink>
+            </>
           )}
         </>
       )}

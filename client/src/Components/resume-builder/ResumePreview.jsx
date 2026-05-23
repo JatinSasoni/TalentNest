@@ -1,18 +1,55 @@
 /* eslint-disable react/prop-types */
 import { forwardRef } from "react";
 
-const SectionTitle = ({ children }) => (
+const pdf = (px) => `calc(${px}px * var(--resume-fill, 1))`;
+
+const typeScale = (forPdf) =>
+  forPdf
+    ? {
+        body: pdf(11.5),
+        lineHeight: 1.45,
+        contact: pdf(10.5),
+        meta: pdf(10),
+        entryTitle: pdf(12.5),
+        sectionTitle: pdf(13),
+        name: pdf(28),
+        sectionGapTop: pdf(18),
+        sectionGapBottom: pdf(10),
+        entryGap: pdf(11),
+        headerGap: pdf(12),
+        bulletGap: pdf(4),
+        listPad: pdf(18),
+        padding: `${pdf(46)} ${pdf(53)}`,
+      }
+    : {
+        body: "11.5px",
+        lineHeight: 1.48,
+        contact: "10.5px",
+        meta: "10px",
+        entryTitle: "12.5px",
+        sectionTitle: "12px",
+        name: "28px",
+        sectionGapTop: "18px",
+        sectionGapBottom: "10px",
+        entryGap: "11px",
+        headerGap: "12px",
+        bulletGap: "3px",
+        listPad: "18px",
+        padding: "24px 28px",
+      };
+
+const SectionTitle = ({ children, type }) => (
   <h2
     style={{
-      fontSize: "11px",
+      fontSize: type.sectionTitle,
       fontWeight: 700,
-      letterSpacing: "0.12em",
+      letterSpacing: "0.1em",
       textTransform: "uppercase",
       color: "#2563eb",
       borderBottom: "1px solid #e5e7eb",
-      paddingBottom: "4px",
-      marginBottom: "8px",
-      marginTop: "14px",
+      paddingBottom: "5px",
+      marginBottom: type.sectionGapBottom,
+      marginTop: type.sectionGapTop,
     }}
   >
     {children}
@@ -24,6 +61,8 @@ export const ResumePreview = forwardRef(function ResumePreview(
   ref
 ) {
   const { personal, experience, projects = [], education, skills } = draft;
+  const forPdf = !screen;
+  const type = typeScale(forPdf);
   const contactLine = [personal.email, personal.phone, personal.location]
     .filter(Boolean)
     .join(" · ");
@@ -32,22 +71,22 @@ export const ResumePreview = forwardRef(function ResumePreview(
     ? {
         width: "100%",
         minHeight: "680px",
-        padding: "24px 28px",
+        padding: type.padding,
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "11px",
-        lineHeight: 1.45,
+        fontSize: type.body,
+        lineHeight: type.lineHeight,
         color: "#111827",
         boxSizing: "border-box",
       }
     : {
         width: "210mm",
-        minHeight: "297mm",
-        padding: "14mm 16mm",
+        padding: type.padding,
         fontFamily: "Georgia, 'Times New Roman', serif",
-        fontSize: "11px",
-        lineHeight: 1.45,
+        fontSize: type.body,
+        lineHeight: type.lineHeight,
         color: "#111827",
         boxSizing: "border-box",
+        backgroundColor: "#ffffff",
       };
 
   return (
@@ -56,10 +95,10 @@ export const ResumePreview = forwardRef(function ResumePreview(
       className="resume-preview-export mx-auto bg-white text-gray-900 shadow-lg"
       style={pageStyle}
     >
-      <header style={{ marginBottom: "12px" }}>
+      <header style={{ marginBottom: type.headerGap }}>
         <h1
           style={{
-            fontSize: "26px",
+            fontSize: type.name,
             fontWeight: 700,
             margin: 0,
             lineHeight: 1.2,
@@ -69,7 +108,13 @@ export const ResumePreview = forwardRef(function ResumePreview(
           {personal.fullName || "Your Name"}
         </h1>
         {contactLine && (
-          <p style={{ margin: "6px 0 0", fontSize: "10px", color: "#4b5563" }}>
+          <p
+            style={{
+              margin: `${forPdf ? pdf(8) : "8px"} 0 0`,
+              fontSize: type.contact,
+              color: "#4b5563",
+            }}
+          >
             {contactLine}
           </p>
         )}
@@ -77,7 +122,7 @@ export const ResumePreview = forwardRef(function ResumePreview(
 
       {personal.summary?.trim() && (
         <section>
-          <SectionTitle>Summary</SectionTitle>
+          <SectionTitle type={type}>Summary</SectionTitle>
           <p style={{ margin: 0, color: "#374151" }}>{personal.summary}</p>
         </section>
       )}
@@ -86,7 +131,7 @@ export const ResumePreview = forwardRef(function ResumePreview(
         (e) => e.company || e.role || e.bullets?.some((b) => b?.trim())
       ) && (
         <section>
-          <SectionTitle>Experience</SectionTitle>
+          <SectionTitle type={type}>Experience</SectionTitle>
           {experience.map((exp) => {
             const hasContent =
               exp.company ||
@@ -97,10 +142,7 @@ export const ResumePreview = forwardRef(function ResumePreview(
             const dateRange = [exp.start, exp.end].filter(Boolean).join(" – ");
 
             return (
-              <div
-                key={exp.id}
-                style={{ marginBottom: "10px", pageBreakInside: "avoid" }}
-              >
+              <div key={exp.id} style={{ marginBottom: type.entryGap }}>
                 <div
                   style={{
                     display: "flex",
@@ -109,14 +151,20 @@ export const ResumePreview = forwardRef(function ResumePreview(
                     alignItems: "baseline",
                   }}
                 >
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: "12px" }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontWeight: 700,
+                      fontSize: type.entryTitle,
+                    }}
+                  >
                     {exp.role || "Role"}
                     {exp.company ? ` · ${exp.company}` : ""}
                   </p>
                   {dateRange && (
                     <span
                       style={{
-                        fontSize: "10px",
+                        fontSize: type.meta,
                         color: "#6b7280",
                         whiteSpace: "nowrap",
                       }}
@@ -127,15 +175,15 @@ export const ResumePreview = forwardRef(function ResumePreview(
                 </div>
                 <ul
                   style={{
-                    margin: "4px 0 0",
-                    paddingLeft: "16px",
+                    margin: `${type.bulletGap} 0 0`,
+                    paddingLeft: type.listPad,
                     color: "#374151",
                   }}
                 >
                   {(exp.bullets || [])
                     .filter((b) => b?.trim())
                     .map((bullet, i) => (
-                      <li key={i} style={{ marginBottom: "2px" }}>
+                      <li key={i} style={{ marginBottom: type.bulletGap }}>
                         {bullet}
                       </li>
                     ))}
@@ -150,7 +198,7 @@ export const ResumePreview = forwardRef(function ResumePreview(
         (p) => p.name || p.link || p.bullets?.some((b) => b?.trim())
       ) && (
         <section>
-          <SectionTitle>Projects</SectionTitle>
+          <SectionTitle type={type}>Projects</SectionTitle>
           {projects.map((proj) => {
             const hasContent =
               proj.name ||
@@ -161,10 +209,7 @@ export const ResumePreview = forwardRef(function ResumePreview(
             const dateRange = [proj.start, proj.end].filter(Boolean).join(" – ");
 
             return (
-              <div
-                key={proj.id}
-                style={{ marginBottom: "10px", pageBreakInside: "avoid" }}
-              >
+              <div key={proj.id} style={{ marginBottom: type.entryGap }}>
                 <div
                   style={{
                     display: "flex",
@@ -173,7 +218,13 @@ export const ResumePreview = forwardRef(function ResumePreview(
                     alignItems: "baseline",
                   }}
                 >
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: "12px" }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontWeight: 700,
+                      fontSize: type.entryTitle,
+                    }}
+                  >
                     {proj.name || "Project"}
                     {proj.link ? (
                       <span style={{ fontWeight: 400, color: "#4b5563" }}>
@@ -185,7 +236,7 @@ export const ResumePreview = forwardRef(function ResumePreview(
                   {dateRange && (
                     <span
                       style={{
-                        fontSize: "10px",
+                        fontSize: type.meta,
                         color: "#6b7280",
                         whiteSpace: "nowrap",
                       }}
@@ -196,15 +247,15 @@ export const ResumePreview = forwardRef(function ResumePreview(
                 </div>
                 <ul
                   style={{
-                    margin: "4px 0 0",
-                    paddingLeft: "16px",
+                    margin: `${type.bulletGap} 0 0`,
+                    paddingLeft: type.listPad,
                     color: "#374151",
                   }}
                 >
                   {(proj.bullets || [])
                     .filter((b) => b?.trim())
                     .map((bullet, i) => (
-                      <li key={i} style={{ marginBottom: "2px" }}>
+                      <li key={i} style={{ marginBottom: type.bulletGap }}>
                         {bullet}
                       </li>
                     ))}
@@ -217,20 +268,26 @@ export const ResumePreview = forwardRef(function ResumePreview(
 
       {education.some((e) => e.school || e.degree || e.year) && (
         <section>
-          <SectionTitle>Education</SectionTitle>
+          <SectionTitle type={type}>Education</SectionTitle>
           {education.map((edu) => {
             if (!edu.school && !edu.degree && !edu.year) return null;
             return (
-              <div key={edu.id} style={{ marginBottom: "8px" }}>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: "12px" }}>
+              <div key={edu.id} style={{ marginBottom: type.entryGap }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontWeight: 700,
+                    fontSize: type.entryTitle,
+                  }}
+                >
                   {edu.degree || "Degree"}
                   {edu.school ? ` · ${edu.school}` : ""}
                 </p>
                 {edu.year && (
                   <p
                     style={{
-                      margin: "2px 0 0",
-                      fontSize: "10px",
+                      margin: `${type.bulletGap} 0 0`,
+                      fontSize: type.meta,
                       color: "#6b7280",
                     }}
                   >
@@ -245,7 +302,7 @@ export const ResumePreview = forwardRef(function ResumePreview(
 
       {skills.length > 0 && (
         <section>
-          <SectionTitle>Skills</SectionTitle>
+          <SectionTitle type={type}>Skills</SectionTitle>
           <p style={{ margin: 0, color: "#374151" }}>{skills.join(" · ")}</p>
         </section>
       )}

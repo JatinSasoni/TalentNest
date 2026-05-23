@@ -1,162 +1,245 @@
-# 💼 TalentNest Pro - MERN Stack Job Portal
+# TalentNest Pro — MERN Job Portal
 
-A **MERN Stack Job Portal** built to connect recruiters and job seekers through a seamless and modern web experience. This project leverages **React**, **Express**, **MongoDB**, and **Node.js** — with real-time notifications, secure payments, and elegant UI animations.
+A full-stack job portal that connects **students (job seekers)** and **recruiters**. Built with the MERN stack, plus AI features (Google Gemini), voice interview practice (Vapi), payments (Razorpay), and background email jobs (BullMQ + Redis).
 
 ---
 
-## 🌐 Live Preview
+## Live preview
 
-> ⚠️ **Important:**  
-> Both frontend and backend are hosted on **Vercel**. If idle, the initial load might take a few seconds.
+> Both frontend and backend may be hosted on serverless platforms. Cold starts can add a few seconds to the first load.
 
-🔗 **Preview:**  
-[https://talentnests.duckdns.org/](https://talentnests.duckdns.org/)
+**Preview:** [https://talentnests.duckdns.org/](https://talentnests.duckdns.org/)
 
-> 🐢 **Note:** The application may respond slowly due to **vercel's free-tier resource limits**.
+## Screenshots
 
-## 📸 Screenshots:
+![Portal preview](./screenshots/portal1.jpg)
+![Portal preview](./screenshots/portal2.jpg)
+![Portal preview](./screenshots/portal3.jpg)
 
-![Portal-preview](./screenshots/portal1.jpg)
-![Portal-preview](./screenshots/portal2.jpg)
-![Portal-preview](./screenshots/portal3.jpg)
+---
 
-## 🚀 Key Features
+## Features
 
-### 👨‍💻 Job Seekers
+### Job seekers (students)
 
-- 🔍 Advanced job search with filters (salary, location, experience)
-- 📄 One-click job applications
-- 📊 Application tracking dashboard
-- ✉️ Email notifications for application updates
+| Feature | Description |
+|--------|-------------|
+| Job search & filters | Salary, location, experience, job type |
+| One-click apply | Apply from job detail page; resume from profile |
+| Application tracking | View applied jobs and status |
+| **AI Resume Review** | Upload PDF (drag & drop), get score, summary, strengths & improvements |
+| **Resume Builder** | Form-based CV, live preview, download PDF (local draft in `localStorage`) |
+| **Interview practice** | Per-job voice mock interview (Vapi) + AI feedback report |
+| Saved jobs | Bookmark jobs for later |
+| Email updates | Notified when application status changes |
 
-### 👔 Recruiters
+### Recruiters
 
-- 📢 Create and manage job postings
-- 💎 Premium "Job of the Day" feature (Razorpay integration)
-- 👥 View and manage applicants
-- 📈 Boost job visibility
+| Feature | Description |
+|--------|-------------|
+| Companies & jobs | Create and manage companies and postings |
+| Applicant management | View applicants, accept/reject, download resume |
+| **AI job description** | Generate description & requirements (subscription) |
+| **AI applicant summary** | One-line summary + match score from resume PDF (subscription) |
+| **AI shortlist** | Sort applicants by match score |
+| Razorpay subscription | Unlock recruiter AI tools |
+| Job of the day | Featured job placement |
 
-### 🛠️ Technical Highlights
+### Platform
 
-- ⚡ Real-time notifications with Nodemailer
-- 💳 Secure payment gateway (Razorpay)
-- 🧊 State management with Redux Persist
-- 🎨 Smooth animations with Framer Motion
-- 📱 Fully responsive design (Tailwind CSS)
+- JWT auth (HTTP-only cookies)
+- Cloudinary for resumes, profile photos, company logos
+- Redis caching for job listings (optional; app works if Redis is down)
+- BullMQ email queue (welcome, apply, status, OTP) with safe fallback if queue fails
+- Responsive UI — React 19, Tailwind CSS, Framer Motion
 
-## 🛠️ Tech Stack
+---
 
-### Frontend
+## Tech stack
 
-- React.js (Vite)
-- Redux Toolkit + Redux Persist
-- Framer Motion (Animations)
-- Tailwind CSS
-- Axios (API calls)
-- React Hook Form (Forms)
-- React Icons
+| Layer | Technologies |
+|-------|----------------|
+| Frontend | React 19, Vite, Redux Toolkit, Redux Persist, React Router 7, Tailwind, Motion, Axios, React Hook Form |
+| Backend | Node.js, Express, Mongoose, JWT, Bcrypt, Multer, express-validator |
+| AI | Google Gemini (`gemini-2.5-flash-lite`) via OpenAI-compatible API |
+| Voice interviews | [Vapi](https://vapi.ai) (`@vapi-ai/web`) |
+| PDF | `html2pdf.js` (resume export), `pdf-parse` (resume text for AI) |
+| Data & infra | MongoDB, Redis (Upstash), BullMQ, Cloudinary, Razorpay, Nodemailer |
 
-### Backend
+---
 
-- Node.js
-- Express.js
-- MongoDB (Database)
-- Mongoose (ODM)
-- JWT (Authentication)
-- Bcrypt (Password hashing)
-- express-validator
+## Project structure
 
-### Services
+```
+JOB PORTAL/
+├── client/                 # React + Vite frontend
+│   ├── public/env.js       # Runtime config (API URL, Razorpay, Vapi key)
+│   └── src/
+│       ├── pages/          # AiResumeReview, ResumeBuilder, Interview, etc.
+│       ├── Components/
+│       └── Api/
+├── server/                 # Express API
+│   ├── controller/         # User, Job, Application, AI, Company, Contact
+│   ├── routes/
+│   ├── models/
+│   ├── middleware/
+│   ├── queues/             # BullMQ email queue
+│   └── utils/
+└── screenshots/
+```
 
-- Cloudinary (Image storage)
-- Razorpay (Payments)
-- Nodemailer (Email notifications)
-- Render (Backend hosting)
-- Netlify (Frontend hosting)
+---
 
-## 🚀 Getting Started
+## Getting started
 
 ### Prerequisites
 
-- Node.js
-- MongoDB Atlas account or local MongoDB
-- Razorpay developer account (for payments)
-- Cloudinary account (for image uploads)
+- Node.js 18+
+- MongoDB (Atlas or local)
+- [Cloudinary](https://cloudinary.com) — file uploads
+- [Razorpay](https://razorpay.com) — recruiter subscription (test keys OK for dev)
+- [Google AI Studio](https://aistudio.google.com) — `GEMINI_API_KEY` for AI features
+- [Vapi](https://dashboard.vapi.ai) — public API key for interview practice (client)
+- [Upstash Redis](https://upstash.com) (optional) — caching + email queue; free tier has daily limits
 
-### Installation
-
-1. **Clone the repository**
+### 1. Clone & install
 
 ```bash
 git clone https://github.com/JatinSasoni/Job-Portal.git
 cd Job-Portal
+
+cd server && npm install
+cd ../client && npm install
 ```
 
-### 🔧 Backend Setup
+### 2. Backend environment
+
+Create `server/.env` (see `server/.env.example`):
+
+```env
+PORT=8000
+MONGODB_URI=your_mongodb_connection_string
+SECRET_KEY=your_jwt_secret
+
+# Frontend URL for CORS
+FRONTEND_URL=http://localhost:5173
+
+# Gemini (AI job text, resume review, interviews)
+GEMINI_API_KEY=your_gemini_api_key
+
+# Cloudinary
+CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+# Email (SMTP used by queue worker)
+COMPANY_NAME=TalentNest Pro
+COMPANY_EMAIL=your_noreply@example.com
+
+# Razorpay
+RAZOR_PAY_KEY=
+RAZOR_PAY_SECRET=
+RAZOR_PLAN_ID=
+
+# Redis (Upstash) — optional but recommended for cache + emails
+REDIS_URL=your_upstash_redis_url
+EMAIL_QUEUE_NAME=emailQueue
+```
+
+Start the API:
 
 ```bash
 cd server
-npm install
-```
-
-### Create a .env file in /server:
-
-```bash
-PORT=8000
-MONGODB_URI=your_mongodb_uri
-SECRET_KEY=your_secret_key
-CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-COMPANY_NAME=your_company_name
-COMPANY_EMAIL=your_company_email
-RAZOR_PAY_KEY=your_razorpay_key
-RAZOR_PAY_SECRET=your_razorpay_secret
-RAZOR_PLAN_ID=your_razorpay_plan_id
-```
-
-#### Run the server:
-
-```bash
 npm run dev
 ```
 
-### 🎨 Frontend Setup
+Server runs at `http://localhost:8000` by default.
+
+### 3. Frontend environment
+
+Edit `client/public/env.js` (loaded at runtime in the browser):
+
+```js
+window._env_ = {
+  VITE_API_URI: "http://localhost:8000",
+  VITE_RAZOR_PAY_KEY: "rzp_test_xxx",
+  VITE_SUBSCRIPTION_PRICE: 10,
+  VITE_VAPI_PUBLIC_API_KEY: "your_vapi_public_key",
+};
+```
+
+Start the client:
 
 ```bash
 cd client
-npm install
 npm run dev
 ```
 
-### Create a .env file in /Client:
+App runs at `http://localhost:5173`.
 
-```bash
-VITE_API_URI=your_backend_api_base_url
-VITE_RAZOR_PAY_KEY=your_razorpay_key
-VITE_SUBSCRIPTION_PRICE=your_subscription_price
-```
+> **Note:** The client uses `public/env.js`, not Vite `.env` files, for these values in this project.
 
-### 🚀 Deployment
+---
 
-Frontend: Deployed on Netlify
+## AI API overview
 
-Backend: Deployed on Render
+Base path: `/api/v1/ai` (authenticated unless noted)
 
-### 🧩 Folder Structure
+| Method | Endpoint | Role | Notes |
+|--------|----------|------|--------|
+| POST | `/job-description/generate` | Recruiter + subscription | Job posting copy |
+| POST | `/applicant/summary` | Recruiter + subscription | PDF resume → summary & match % |
+| POST | `/resume/review` | Student | Profile resume → score & tips |
+| POST | `/interview/job/:jobId/start` | Student | Create session + questions |
+| GET | `/interview/session/:sessionId` | Student | Session / report |
+| GET | `/interview/job/:jobId/history` | Student | Past attempts |
+| POST | `/interview/session/:sessionId/feedback` | Student | Transcript → Gemini feedback |
 
-- /Client --> React Frontend
-- /Server --> Express Backend API
+**Model:** `gemini-2.5-flash-lite` (see [Gemini rate limits](https://ai.google.dev/gemini-api/docs/rate-limits); free tier is very low on requests/day).
 
-### 🔮 To-Do / Future Enhancements
+**Interview practice:** Open a job → **Practice interview** → voice call via Vapi → feedback saved after the call. Mic permission and HTTPS (or localhost) required.
 
-- ✅ Admin dashboard for management
-- ✅ Job analytics for recruiters
-- ✅ Enhanced search & filter optimizations
-- ✅ Push Notifications
-- ✅ Follow and DM recruiters
-- ✅ Resume builder
+---
 
-## 📬 Dev?
+## Key routes (frontend)
 
-### Jatin Sasoni :)
+| Path | Purpose |
+|------|---------|
+| `/jobs` | Browse jobs |
+| `/description/:jobID` | Job detail & apply |
+| `/description/:jobID/interview` | Voice practice |
+| `/resume-review` | AI resume upload & review |
+| `/resume-builder` | Build & download PDF |
+| `/admin/*` | Recruiter dashboard |
+
+---
+
+## Scripts
+
+| Location | Command | Description |
+|----------|---------|-------------|
+| `server/` | `npm run dev` | API with nodemon |
+| `server/` | `npm start` | Production API |
+| `client/` | `npm run dev` | Vite dev server |
+| `client/` | `npm run build` | Production build |
+
+---
+
+## Deployment notes
+
+- Configure `FRONTEND_URL` and CORS origins in `server/server.js` for your production domain.
+- Set `client/public/env.js` (or inject at deploy) with production API URL and keys.
+- **Do not commit** real API keys in `env.js` or `.env` — use secrets in your host dashboard.
+- Redis quota exhaustion only affects cache/emails; core CRUD still works. Job apply uses safe email enqueue so applications are not orphaned.
+
+---
+
+## Author
+
+**Jatin Sasoni**
+
+---
+
+## License
+
+ISC (see `server/package.json`)

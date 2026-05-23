@@ -240,6 +240,4 @@ Base path: `/api/v1/ai` (authenticated unless noted)
 
 ---
 
-## License
 
-ISC (see `server/package.json`)

@@ -2,7 +2,7 @@ name: Build and Deploy to EC2
 
 on:
   push:
-    branches: ["pwa"]
+    branches: ["AI"]
     paths-ignore:
       - "README.md"
       - "**/*.md"

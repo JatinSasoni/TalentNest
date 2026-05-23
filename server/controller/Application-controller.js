@@ -1,7 +1,7 @@
 import Application from "../models/application-model.js";
 import Job from "../models/job-model.js";
 import User from "../models/user-model.js";
-import { emailQueue } from "../queues/emailQueue.js";
+import { enqueueEmailSafely } from "../utils/enqueueEmailSafely.js";
 import validateObjectID from "../utils/validateMongooseObjectID.js";
 
 //STUDENT|| JobSEEKER APPLYING FOR JOB
@@ -25,6 +25,15 @@ export const applyForJob = async (req, res) => {
     });
 
     if (alreadyApplied) {
+      const job = await Job.findById(jobID);
+      if (job) {
+        const appId = alreadyApplied._id.toString();
+        const linked = job.application.some((id) => id.toString() === appId);
+        if (!linked) {
+          job.application.push(alreadyApplied._id);
+          await job.save();
+        }
+      }
       return res.status(400).json({
         MESSAGE: "Already applied for this job",
         SUCCESS: false,
@@ -103,19 +112,18 @@ export const applyForJob = async (req, res) => {
       `,
     };
 
-    // Send email only if mailOptions is set
-    await emailQueue.add("newJobApplication", { mailOptions });
-
-    //UPDATE JOB COLLECTION
+    //UPDATE JOB COLLECTION (before email so Redis outage cannot orphan applications)
     job.application.push(newApplication._id);
     await job.save();
+
+    await enqueueEmailSafely("newJobApplication", { mailOptions });
 
     return res.status(200).json({
       MESSAGE: "Applied for job successfully",
       SUCCESS: true,
     });
   } catch (error) {
-    console.log("Error while applying for job");
+    console.error("Error while applying for job:", error?.message);
     res.status(500).json({ MESSAGE: "Server error", SUCCESS: false });
   }
 };
@@ -267,8 +275,9 @@ export const updateApplicationStatus = async (req, res) => {
       };
     }
 
-    // Send email only if mailOptions is set
-    await emailQueue.add("applicationStatusUpdate", { mailOptions });
+    if (mailOptions) {
+      await enqueueEmailSafely("applicationStatusUpdate", { mailOptions });
+    }
 
     return res.status(200).json({
       MESSAGE: "Application Status Updated",

@@ -1,6 +1,6 @@
 import Contact from "../models/contact-model.js";
 import User from "../models/user-model.js";
-import { emailQueue } from "../queues/emailQueue.js";
+import { enqueueEmailSafely } from "../utils/enqueueEmailSafely.js";
 import { clearCache } from "../utils/clearCache.js";
 import redis from "../utils/redis.js";
 
@@ -55,7 +55,9 @@ export const contactController = async (req, res) => {
       `,
     };
 
-    await emailQueue.add("contactFormSubmission", { mailOptions: mailOption });
+    await enqueueEmailSafely("contactFormSubmission", {
+      mailOptions: mailOption,
+    });
 
     await clearCache(["talentNest:approvedContacts"]);
 

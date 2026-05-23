@@ -82,6 +82,28 @@ export const reviewStudentResumeAPI = (data = {}) => {
   });
 };
 
+export const startJobInterviewAPI = (jobId) => {
+  return api.post(`/api/v1/ai/interview/job/${jobId}/start`, {}, {
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const submitInterviewFeedbackAPI = (sessionId, transcript) => {
+  return api.post(
+    `/api/v1/ai/interview/session/${sessionId}/feedback`,
+    { transcript },
+    {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
 export const handlePostJobAPI = (data) => {
   return api.post("/api/v1/job/post", data, {
     withCredentials: true,

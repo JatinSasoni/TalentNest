@@ -1,8 +1,12 @@
 import OpenAI from "openai";
 import User from "../models/user-model.js";
-import { safeJsonParse } from "../utils/parseAiJson.js";
+import Job from "../models/job-model.js";
+import InterviewSession from "../models/interview-session-model.js";
+import { safeJsonParse, safeJsonArrayParse } from "../utils/parseAiJson.js";
 import { fetchResumeTextFromUrl } from "../utils/fetchResumeText.js";
 import { loadApplicationForRecruiter } from "../utils/loadApplicationForRecruiter.js";
+import validateObjectID from "../utils/validateMongooseObjectID.js";
+import { computeInterviewTotalScore } from "../utils/computeInterviewScore.js";
 
 const getAiClient = () => {
   if (!process.env.GEMINI_API_KEY) {
@@ -412,5 +416,337 @@ score must be an integer from 0 to 100 (overall resume quality for job applicati
       MESSAGE: error.message || "Failed to review resume",
       SUCCESS: false,
     });
+  }
+};
+
+const handleAiError = (res, error, fallbackMessage) => {
+  console.error(fallbackMessage, error);
+  const status = error?.status || error?.response?.status;
+  if (status === 429) {
+    return res.status(429).json({
+      MESSAGE: "AI rate limit reached. Please wait a minute and try again.",
+      SUCCESS: false,
+    });
+  }
+  return res.status(500).json({
+    MESSAGE: error.message || fallbackMessage,
+    SUCCESS: false,
+  });
+};
+
+export const startJobInterviewPractice = async (req, res) => {
+  try {
+    if (req.role !== "student") {
+      return res.status(403).json({
+        MESSAGE: "Only job seekers can practice interviews",
+        SUCCESS: false,
+      });
+    }
+
+    const { jobId } = req.params;
+    if (!validateObjectID(jobId)) {
+      return res.status(400).json({
+        MESSAGE: "Invalid job ID",
+        SUCCESS: false,
+      });
+    }
+
+    const job = await Job.findById(jobId).populate("CompanyID", "companyName");
+    if (!job) {
+      return res.status(404).json({
+        MESSAGE: "Job not found",
+        SUCCESS: false,
+      });
+    }
+
+    const ai = getAiClient();
+    if (!ai) {
+      return res.status(503).json({
+        MESSAGE: "AI service is not configured.",
+        SUCCESS: false,
+      });
+    }
+
+    const requirements = Array.isArray(job.requirements)
+      ? job.requirements.join(", ")
+      : "";
+    const companyName = job.CompanyID?.companyName || "the company";
+
+    const prompt = `You are an expert technical interviewer preparing voice interview questions for a job portal in India.
+
+JOB:
+- Title: ${job.title}
+- Company: ${companyName}
+- Location: ${job.location || "Not specified"}
+- Experience: ${job.experienceLevel} years
+- Type: ${job.jobType || "Not specified"}
+- Description: ${job.description}
+- Requirements: ${requirements || "Not listed"}
+
+Generate exactly 7 interview questions for a voice AI assistant to ask the candidate.
+Mix behavioral and technical questions relevant to this role.
+Questions must be short, clear, and voice-friendly (no slashes, asterisks, markdown, or special symbols).
+
+Return ONLY a JSON array of strings, for example:
+["Question one?","Question two?"]`;
+
+    const response = await ai.chat.completions.create({
+      model: "gemini-2.5-flash-lite",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
+      max_completion_tokens: 800,
+    });
+
+    let questions;
+    try {
+      questions = safeJsonArrayParse(response.choices[0]?.message?.content);
+    } catch {
+      questions = [
+        `Tell me about yourself and why you want the ${job.title} role at ${companyName}.`,
+        `What experience do you have that relates to this ${job.title} position?`,
+        `Describe a challenging project you worked on and your contribution.`,
+        `How do you handle tight deadlines and pressure?`,
+        `What skills from the job requirements are your strongest?`,
+        `Where do you see yourself in the next few years?`,
+        `Do you have any questions about the role or company?`,
+      ];
+    }
+
+    const session = await InterviewSession.create({
+      userId: req.id,
+      jobId: job._id,
+      jobTitle: job.title,
+      companyName,
+      questions: questions.slice(0, 8),
+      status: "ready",
+    });
+
+    return res.status(200).json({
+      SUCCESS: true,
+      MESSAGE: "Interview practice session started",
+      data: {
+        sessionId: session._id,
+        questions: session.questions,
+        jobTitle: session.jobTitle,
+        companyName: session.companyName,
+        jobId: session.jobId,
+      },
+    });
+  } catch (error) {
+    return handleAiError(res, error, "Failed to start interview practice");
+  }
+};
+
+export const getInterviewSession = async (req, res) => {
+  try {
+    if (req.role !== "student") {
+      return res.status(403).json({
+        MESSAGE: "Only job seekers can view interview sessions",
+        SUCCESS: false,
+      });
+    }
+
+    const { sessionId } = req.params;
+    if (!validateObjectID(sessionId)) {
+      return res.status(400).json({
+        MESSAGE: "Invalid session ID",
+        SUCCESS: false,
+      });
+    }
+
+    const session = await InterviewSession.findOne({
+      _id: sessionId,
+      userId: req.id,
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        MESSAGE: "Interview session not found",
+        SUCCESS: false,
+      });
+    }
+
+    const displayScore =
+      computeInterviewTotalScore(session.feedback) ?? session.totalScore;
+
+    return res.status(200).json({
+      SUCCESS: true,
+      data: {
+        sessionId: session._id,
+        jobId: session.jobId,
+        jobTitle: session.jobTitle,
+        companyName: session.companyName,
+        questions: session.questions,
+        status: session.status,
+        totalScore: displayScore,
+        feedback: session.feedback,
+        createdAt: session.createdAt,
+      },
+    });
+  } catch (error) {
+    return handleAiError(res, error, "Failed to fetch interview session");
+  }
+};
+
+export const getJobInterviewHistory = async (req, res) => {
+  try {
+    if (req.role !== "student") {
+      return res.status(403).json({
+        MESSAGE: "Only job seekers can view interview history",
+        SUCCESS: false,
+      });
+    }
+
+    const { jobId } = req.params;
+    if (!validateObjectID(jobId)) {
+      return res.status(400).json({
+        MESSAGE: "Invalid job ID",
+        SUCCESS: false,
+      });
+    }
+
+    const sessions = await InterviewSession.find({
+      userId: req.id,
+      jobId,
+      status: "completed",
+      feedback: { $ne: null },
+    })
+      .sort({ createdAt: -1 })
+      .select("_id jobTitle companyName totalScore feedback createdAt")
+      .limit(20);
+
+    const history = sessions.map((s) => ({
+      sessionId: s._id,
+      jobTitle: s.jobTitle,
+      companyName: s.companyName,
+      totalScore: computeInterviewTotalScore(s.feedback) ?? s.totalScore,
+      createdAt: s.createdAt,
+    }));
+
+    return res.status(200).json({
+      SUCCESS: true,
+      sessions: history,
+    });
+  } catch (error) {
+    return handleAiError(res, error, "Failed to fetch interview history");
+  }
+};
+
+export const submitInterviewFeedback = async (req, res) => {
+  try {
+    if (req.role !== "student") {
+      return res.status(403).json({
+        MESSAGE: "Only job seekers can submit interview feedback",
+        SUCCESS: false,
+      });
+    }
+
+    const { sessionId } = req.params;
+    const { transcript } = req.body;
+
+    if (!validateObjectID(sessionId)) {
+      return res.status(400).json({
+        MESSAGE: "Invalid session ID",
+        SUCCESS: false,
+      });
+    }
+
+    if (!Array.isArray(transcript) || transcript.length === 0) {
+      return res.status(400).json({
+        MESSAGE: "Interview transcript is required",
+        SUCCESS: false,
+      });
+    }
+
+    const session = await InterviewSession.findOne({
+      _id: sessionId,
+      userId: req.id,
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        MESSAGE: "Interview session not found",
+        SUCCESS: false,
+      });
+    }
+
+    if (session.status === "completed" && session.feedback) {
+      return res.status(200).json({
+        SUCCESS: true,
+        MESSAGE: "Feedback loaded",
+        cached: true,
+        data: {
+          totalScore: session.totalScore,
+          feedback: session.feedback,
+        },
+      });
+    }
+
+    const ai = getAiClient();
+    if (!ai) {
+      return res.status(503).json({
+        MESSAGE: "AI service is not configured.",
+        SUCCESS: false,
+      });
+    }
+
+    const formattedTranscript = transcript
+      .map((entry) => `- ${entry.role}: ${entry.content}`)
+      .join("\n");
+
+    const prompt = `You are an expert interviewer evaluating a mock job interview for a job portal in India.
+
+ROLE: ${session.jobTitle} at ${session.companyName}
+
+Analyze the transcript and return ONLY valid JSON (no markdown). Each category score is out of 10 (use decimals if needed). Be fair and consistent — low performance in most areas should not get high scores.
+{
+  "communicationSkills": { "score": number, "feedback": "string" },
+  "technicalKnowledge": { "score": number, "feedback": "string" },
+  "problemSolving": { "score": number, "feedback": "string" },
+  "culturalRoleFit": { "score": number, "feedback": "string" },
+  "confidenceClarity": { "score": number, "feedback": "string" },
+  "areasOfImprovement": ["string", "at least 3 items"]
+}
+
+TRANSCRIPT:
+${formattedTranscript}`;
+
+    const response = await ai.chat.completions.create({
+      model: "gemini-2.5-flash-lite",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.5,
+      max_completion_tokens: 1200,
+    });
+
+    const structuredFeedback = safeJsonParse(
+      response.choices[0]?.message?.content
+    );
+
+    const totalScore =
+      computeInterviewTotalScore(structuredFeedback) ??
+      Math.min(10, Math.max(0, Number(structuredFeedback.totalScore) || 0));
+
+    structuredFeedback.totalScore = totalScore;
+
+    session.transcript = transcript.map((t) => ({
+      role: t.role,
+      content: String(t.content),
+    }));
+    session.feedback = structuredFeedback;
+    session.totalScore = totalScore;
+    session.status = "completed";
+    await session.save();
+
+    return res.status(200).json({
+      SUCCESS: true,
+      MESSAGE: "Interview feedback generated",
+      cached: false,
+      data: {
+        totalScore: session.totalScore,
+        feedback: session.feedback,
+      },
+    });
+  } catch (error) {
+    return handleAiError(res, error, "Failed to generate interview feedback");
   }
 };

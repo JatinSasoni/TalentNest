@@ -10,6 +10,8 @@ import { JobProfile } from "../Components/JobProfile";
 import { BrowsePage } from "../Components/BrowsePage";
 import { AiResumeReviewPage } from "../pages/AiResumeReviewPage";
 import { ResumeBuilderPage } from "../pages/ResumeBuilderPage";
+import { JobInterviewPracticePage } from "../pages/JobInterviewPracticePage";
+import { JobInterviewReportPage } from "../pages/JobInterviewReportPage";
 import { ResetPassPage } from "../pages/ResetPassPage";
 import { VerifyOTPPage } from "../pages/VerifyOTPPage";
 import { ProtectedChangePassword } from "../pages/protect/ProtectChangePassword";
@@ -56,6 +58,14 @@ const AppRouter = createBrowserRouter([
       {
         path: "/description/:jobID",
         element: <JobProfile />,
+      },
+      {
+        path: "/description/:jobID/interview",
+        element: <JobInterviewPracticePage />,
+      },
+      {
+        path: "/description/:jobID/interview/report/:sessionId",
+        element: <JobInterviewReportPage />,
       },
       {
         path: "/browse",

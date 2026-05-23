@@ -7,7 +7,7 @@ import crypto from "crypto";
 import validateObjectID from "../utils/validateMongooseObjectID.js";
 import redis from "../utils/redis.js";
 import { clearCache } from "../utils/clearCache.js";
-import { emailQueue } from "../queues/emailQueue.js";
+import { enqueueEmailSafely } from "../utils/enqueueEmailSafely.js";
 //HANDLING USER REGISTER
 export const register = async (req, res) => {
   try {
@@ -65,7 +65,7 @@ export const register = async (req, res) => {
     };
 
     if (mailOption) {
-      await emailQueue.add("welcomeEmail", { mailOptions: mailOption });
+      await enqueueEmailSafely("welcomeEmail", { mailOptions: mailOption });
     }
 
     return res.status(201).json({
@@ -376,8 +376,7 @@ export const sendOTPForPass = async (req, res) => {
         <p><strong>${process.env.COMPANY_NAME}</strong></p>
       `,
     };
-    //MAIL SENT
-    await emailQueue.add(
+    await enqueueEmailSafely(
       "sendOTPEmail",
       { mailOptions },
       {
@@ -544,7 +543,7 @@ export const ChangePassword = async (req, res) => {
       `,
     };
 
-    await emailQueue.add("passwordChangeEmail", { mailOptions });
+    await enqueueEmailSafely("passwordChangeEmail", { mailOptions });
 
     return res.status(200).clearCookie("auth").json({
       MESSAGE: "Password Changed",

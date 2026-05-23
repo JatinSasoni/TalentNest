@@ -109,3 +109,15 @@ export const handleGetTopRecruiters = () => {
     withCredentials: true,
   });
 };
+
+export const getInterviewSessionAPI = (sessionId) => {
+  return api.get(`/api/v1/ai/interview/session/${sessionId}`, {
+    withCredentials: true,
+  });
+};
+
+export const getJobInterviewHistoryAPI = (jobId) => {
+  return api.get(`/api/v1/ai/interview/job/${jobId}/history`, {
+    withCredentials: true,
+  });
+};

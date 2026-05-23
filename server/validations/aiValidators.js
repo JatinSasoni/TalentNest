@@ -12,3 +12,13 @@ export const validateGenerateApplicantSummary = [
     .notEmpty()
     .withMessage("Application ID is required"),
 ];
+
+export const validateInterviewFeedback = [
+  body("transcript")
+    .isArray({ min: 1 })
+    .withMessage("Transcript must be a non-empty array"),
+  body("transcript.*.role").notEmpty().withMessage("Transcript role is required"),
+  body("transcript.*.content")
+    .notEmpty()
+    .withMessage("Transcript content is required"),
+];

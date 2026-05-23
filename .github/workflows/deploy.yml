@@ -97,6 +97,7 @@ jobs:
           BREVO_PASS="${{ secrets.BREVO_PASS }}"
           SELF_EMAIL="${{ secrets.SELF_EMAIL }}"
           SELF_PASSS="${{ secrets.SELF_PASSS }}"
+          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
           NODE_ENV="production"
           EOF
 
@@ -137,7 +138,8 @@ jobs:
             window._env_ = {
               VITE_API_URI: '${{ secrets.VITE_API_URI }}',
               VITE_RAZOR_PAY_KEY: '${{ secrets.VITE_RAZOR_PAY_KEY }}',
-              VITE_SUBSCRIPTION_PRICE: '${{ secrets.VITE_SUBSCRIPTION_PRICE }}'
+              VITE_SUBSCRIPTION_PRICE: '${{ secrets.VITE_SUBSCRIPTION_PRICE }}',
+              VITE_VAPI_PUBLIC_API_KEY: '${{ secrets.VITE_VAPI_PUBLIC_API_KEY }}'
             };
             EOF
 

@@ -32,3 +32,14 @@ export const safeJsonArrayParse = (text) => {
 
   return parsed.map((q) => String(q).trim()).filter(Boolean);
 };
+
+/** For Groq json_object mode: { "questions": ["...", "..."] } */
+export const safeJsonQuestionsParse = (text) => {
+  const parsed = safeJsonParse(text);
+
+  if (Array.isArray(parsed.questions)) {
+    return parsed.questions.map((q) => String(q).trim()).filter(Boolean);
+  }
+
+  return safeJsonArrayParse(text);
+};

@@ -15,6 +15,10 @@ A full-stack job portal that connects **students (job seekers)** and **recruiter
 ![Portal preview](./screenshots/portal1.jpg)
 ![Portal preview](./screenshots/portal2.jpg)
 ![Portal preview](./screenshots/portal3.jpg)
+![Portal preview](./screenshots/Resume-Builder.png)
+![Portal preview](./screenshots/resume-review.png)
+![Portal preview](./screenshots/interview.png)
+![Portal preview](./screenshots/AI-Shortlist.png)
 
 ---
 
@@ -61,7 +65,7 @@ A full-stack job portal that connects **students (job seekers)** and **recruiter
 |-------|----------------|
 | Frontend | React 19, Vite, Redux Toolkit, Redux Persist, React Router 7, Tailwind, Motion, Axios, React Hook Form |
 | Backend | Node.js, Express, Mongoose, JWT, Bcrypt, Multer, express-validator |
-| AI | Google Gemini (`gemini-2.5-flash-lite`) via OpenAI-compatible API |
+| AI | [Groq](https://groq.com) (default: `llama-3.3-70b-versatile`) via OpenAI-compatible API |
 | Voice interviews | [Vapi](https://vapi.ai) (`@vapi-ai/web`) |
 | PDF | `html2pdf.js` (resume export), `pdf-parse` (resume text for AI) |
 | Data & infra | MongoDB, Redis (Upstash), BullMQ, Cloudinary, Razorpay, Nodemailer |
@@ -98,7 +102,7 @@ JOB PORTAL/
 - MongoDB (Atlas or local)
 - [Cloudinary](https://cloudinary.com) — file uploads
 - [Razorpay](https://razorpay.com) — recruiter subscription (test keys OK for dev)
-- [Google AI Studio](https://aistudio.google.com) — `GEMINI_API_KEY` for AI features
+- [Groq Console](https://console.groq.com) — `AI_API_KEY` for AI features (or any OpenAI-compatible provider)
 - [Vapi](https://dashboard.vapi.ai) — public API key for interview practice (client)
 - [Upstash Redis](https://upstash.com) (optional) — caching + email queue; free tier has daily limits
 
@@ -124,8 +128,10 @@ SECRET_KEY=your_jwt_secret
 # Frontend URL for CORS
 FRONTEND_URL=http://localhost:5173
 
-# Gemini (AI job text, resume review, interviews)
-GEMINI_API_KEY=your_gemini_api_key
+# AI — Groq (see server/.env.example)
+AI_API_KEY=your_groq_api_key
+AI_BASE_URL=https://api.groq.com/openai/v1
+AI_MODEL=llama-3.3-70b-versatile
 
 # Cloudinary
 CLOUD_NAME=
@@ -195,7 +201,7 @@ Base path: `/api/v1/ai` (authenticated unless noted)
 | GET | `/interview/job/:jobId/history` | Student | Past attempts |
 | POST | `/interview/session/:sessionId/feedback` | Student | Transcript → Gemini feedback |
 
-**Model:** `gemini-2.5-flash-lite` (see [Gemini rate limits](https://ai.google.dev/gemini-api/docs/rate-limits); free tier is very low on requests/day).
+**Model:** set via `AI_MODEL` (default `llama-3.3-70b-versatile`). All AI routes use JSON mode for reliable parsing. See [Groq rate limits](https://console.groq.com/docs/rate-limits).
 
 **Interview practice:** Open a job → **Practice interview** → voice call via Vapi → feedback saved after the call. Mic permission and HTTPS (or localhost) required.
 

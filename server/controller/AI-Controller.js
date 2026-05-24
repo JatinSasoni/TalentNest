@@ -1,23 +1,15 @@
-import OpenAI from "openai";
 import User from "../models/user-model.js";
 import Job from "../models/job-model.js";
 import InterviewSession from "../models/interview-session-model.js";
-import { safeJsonParse, safeJsonArrayParse } from "../utils/parseAiJson.js";
+import {
+  safeJsonParse,
+  safeJsonQuestionsParse,
+} from "../utils/parseAiJson.js";
+import { createJsonCompletion, getAiClient } from "../utils/aiClient.js";
 import { fetchResumeTextFromUrl } from "../utils/fetchResumeText.js";
 import { loadApplicationForRecruiter } from "../utils/loadApplicationForRecruiter.js";
 import validateObjectID from "../utils/validateMongooseObjectID.js";
 import { computeInterviewTotalScore } from "../utils/computeInterviewScore.js";
-
-const getAiClient = () => {
-  if (!process.env.GEMINI_API_KEY) {
-    return null;
-  }
-
-  return new OpenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-  });
-};
 
 export const generateJobDescription = async (req, res) => {
   try {
@@ -67,14 +59,13 @@ ${contextParts.join("\n")}
 
 Return ONLY valid JSON (no markdown fences) in this exact shape:
 {
-  "description": "2-4 short paragraphs describing the role, responsibilities, and what the company offers. Use plain text with line breaks where helpful.",
+  "description": "2-4 short paragraphs in one string; use \\n between paragraphs, no raw line breaks inside the string",
   "requirements": ["skill or requirement 1", "skill or requirement 2", "at least 5 items, max 10"]
 }
 
 Keep language clear, inclusive, and specific to the role. Do not invent company names if not provided.`;
 
-    const response = await ai.chat.completions.create({
-      model: "gemini-2.5-flash-lite",
+    const response = await createJsonCompletion(ai, {
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_completion_tokens: 1200,
@@ -195,14 +186,13 @@ ${resumeText}
 
 Compare the resume and profile against this job. Return ONLY valid JSON (no markdown):
 {
-  "summary": "One concise sentence (max 25 words) highlighting fit, key strength, and main gap",
+  "summary": "Two to Three line concise sentence summary (max 30 words) highlighting fit, key strength, and main gap",
   "matchScore": 0
 }
 
 matchScore must be an integer from 0 to 100 representing overall fit for this job.`;
 
-    const response = await ai.chat.completions.create({
-      model: "gemini-2.5-flash-lite",
+    const response = await createJsonCompletion(ai, {
       messages: [{ role: "user", content: prompt }],
       temperature: 0.5,
       max_completion_tokens: 300,
@@ -251,7 +241,7 @@ matchScore must be an integer from 0 to 100 representing overall fit for this jo
     }
 
     return res.status(500).json({
-      MESSAGE: error.message || "Failed to generate applicant summary",
+      MESSAGE:  "Failed to generate applicant summary",
       SUCCESS: false,
     });
   }
@@ -351,8 +341,7 @@ Analyze the resume for clarity, impact, skills presentation, and employability. 
 
 score must be an integer from 0 to 100 (overall resume quality for job applications).`;
 
-    const response = await ai.chat.completions.create({
-      model: "gemini-2.5-flash-lite",
+    const response = await createJsonCompletion(ai, {
       messages: [{ role: "user", content: prompt }],
       temperature: 0.5,
       max_completion_tokens: 900,
@@ -487,11 +476,10 @@ Generate exactly 7 interview questions for a voice AI assistant to ask the candi
 Mix behavioral and technical questions relevant to this role.
 Questions must be short, clear, and voice-friendly (no slashes, asterisks, markdown, or special symbols).
 
-Return ONLY a JSON array of strings, for example:
-["Question one?","Question two?"]`;
+Return ONLY valid JSON in this shape:
+{ "questions": ["Question one?", "Question two?", "... exactly 7 strings total"] }`;
 
-    const response = await ai.chat.completions.create({
-      model: "gemini-2.5-flash-lite",
+    const response = await createJsonCompletion(ai, {
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_completion_tokens: 800,
@@ -499,7 +487,7 @@ Return ONLY a JSON array of strings, for example:
 
     let questions;
     try {
-      questions = safeJsonArrayParse(response.choices[0]?.message?.content);
+      questions = safeJsonQuestionsParse(response.choices[0]?.message?.content);
     } catch {
       questions = [
         `Tell me about yourself and why you want the ${job.title} role at ${companyName}.`,
@@ -711,8 +699,7 @@ Analyze the transcript and return ONLY valid JSON (no markdown). Each category s
 TRANSCRIPT:
 ${formattedTranscript}`;
 
-    const response = await ai.chat.completions.create({
-      model: "gemini-2.5-flash-lite",
+    const response = await createJsonCompletion(ai, {
       messages: [{ role: "user", content: prompt }],
       temperature: 0.5,
       max_completion_tokens: 1200,

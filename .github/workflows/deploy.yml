@@ -97,7 +97,9 @@ jobs:
           BREVO_PASS="${{ secrets.BREVO_PASS }}"
           SELF_EMAIL="${{ secrets.SELF_EMAIL }}"
           SELF_PASSS="${{ secrets.SELF_PASSS }}"
-          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
+          AI_API_KEY="${{ secrets.AI_API_KEY }}"
+          AI_BASE_URL="${{ secrets.AI_BASE_URL }}"
+          AI_MODEL="${{ secrets.AI_MODEL }}"
           NODE_ENV="production"
           EOF
 

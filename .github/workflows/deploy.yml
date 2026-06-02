@@ -170,16 +170,32 @@ jobs:
                 restart: unless-stopped
                 depends_on:
                   - nginx-proxy-manager
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "10m"
+                    max-file: "3"
               server:
                 image: ${{ secrets.DOCKER_USERNAME }}/job-portal-server:$TAG
                 env_file: ../app/.env
                 expose:
                   - "8000"
                 restart: unless-stopped
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "10m"
+                    max-file: "3"
+
               worker:
                 image: ${{ secrets.DOCKER_USERNAME }}/job-portal-worker:$TAG
                 env_file: ../app/.env
                 restart: unless-stopped
+                logging:
+                  driver: "json-file"
+                  options:
+                    max-size: "10m"
+                    max-file: "3"
             EOF
 
             # Deploy
